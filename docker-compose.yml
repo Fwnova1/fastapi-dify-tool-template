@@ -31,6 +31,7 @@ services:
       APP_DB_USER: ${APP_DB_USER:-app}
       APP_DB_PASS: ${APP_DB_PASS:-app}
       APP_DB_BASE: ${APP_DB_BASE:-app}
+      APP_GEMINI_KEY: ${APP_GEMINI_KEY}
 
   db:
     image: postgres:16.3-bullseye
@@ -43,7 +44,7 @@ services:
       - app-db-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: pg_isready -U app
+      test: pg_isready -U ${APP_DB_USER:-app}
       interval: 2s
       timeout: 3s
       retries: 40

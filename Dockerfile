@@ -3,7 +3,6 @@ RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
-
 RUN pip install poetry==1.8.2
 
 # Configuring poetry
@@ -16,12 +15,18 @@ WORKDIR /app/src
 
 # Installing requirements
 RUN --mount=type=cache,target=/tmp/poetry_cache poetry install --only main
+
+# Install additional dependencies
+RUN pip install PyMuPDF
+
+RUN apt-get update && apt-get install -y ffmpeg
+
 # Removing gcc
 RUN apt-get purge -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
-# Copying actuall application
+# Copying actual application
 COPY . /app/src/
 RUN --mount=type=cache,target=/tmp/poetry_cache poetry install --only main
 

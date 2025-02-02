@@ -53,6 +53,13 @@ class Settings(BaseSettings):
 
     # Path to the directory with media
     media_dir: str = "media"
+    gemini_key: str = "AIzaSyBf6XLpCYFTdVG5p7YiouYxEpkGAKYqmJQ"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="APP_",  # This maps `APP_GEMINI_KEY` to `gemini_key`
+        env_file_encoding="utf-8",
+    )
 
     @property
     def db_url(self) -> URL:

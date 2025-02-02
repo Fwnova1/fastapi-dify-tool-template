@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import UJSONResponse
 from fastapi.staticfiles import StaticFiles
 
+import google.generativeai as genai
 from app.core.settings import settings
 from app.utils.log_utils import configure_logging
 from app.web.api.router import api_router
@@ -17,16 +18,26 @@ def get_app() -> FastAPI:
 
     :return: application.
     """
+    # Configure logging for the application
     configure_logging()
+
+    # Configure the Gemini API explicitly
+    try:
+        genai.configure(api_key=settings.gemini_key)
+        print("Gemini API successfully configured.")
+    except Exception as e:
+        print(f"Failed to configure Gemini API: {e}")
+
+    # Create FastAPI application
     app = FastAPI(
         title=settings.title,
         version=settings.version,
         description=settings.description,
         lifespan=lifespan_setup,
-        docs_url="/api/docs",
-        redoc_url="/api/redoc",
-        openapi_url="/api/openapi.json",
-        default_response_class=UJSONResponse,
+        docs_url="/api/docs",  # Swagger documentation
+        redoc_url="/api/redoc",  # ReDoc documentation
+        openapi_url="/api/openapi.json",  # OpenAPI schema
+        default_response_class=UJSONResponse,  # Default response class
         servers=[
             {
                 "url": settings.domain,
@@ -35,25 +46,23 @@ def get_app() -> FastAPI:
         ],
     )
 
-    # Main router for the API.
+    # Include API router
     app.include_router(router=api_router, prefix="/api")
 
-    # Add CORS middleware to allow cross-origin requests
+    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "*",
-        ],  # Allow all origins; replace "*" with specific domains in production
-        allow_credentials=True,  # Allow credentials like cookies or headers
-        allow_methods=["*"],  # Allow all HTTP methods (GET, POST, OPTIONS, etc.)
-        allow_headers=["*"],  # Allow all headers
-        expose_headers=["*"],  # Allow specific headers to be exposed
+        allow_origins=["*"],  # Replace "*" with allowed domains in production
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
-    # Mount some static files
+    # Serve static files
     app.mount(
         "/static/media",
         StaticFiles(directory=settings.media_dir_static),
         name="media",
     )
+
     return app
